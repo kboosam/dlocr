@@ -176,7 +176,7 @@ def parse_DL(full_text):
     
     if full_text.count('WISCONSIN') > 0 : state='WI'
     
-    if full_text.count('CALIFORNIA') > 0 : state='CA'
+    if full_text.count('CALIF') > 0 : state='CA'
     
     if full_text.count('ALABAMA') > 0 : state='AL'
     
@@ -358,8 +358,7 @@ try:
     #img_path = "DL Tests\illinois-DL.jpg"
     #img_path = r'DL Tests\FL_DL.jpg'
     img_path = "http://www.northescambia.com/wp-content/uploads/2015/01/driverslicense.jpg" #Florida DL
-    # Texas sample DL
-    #img_path = "https://4.bp.blogspot.com/-xwv9SOZn-UI/VxY9JDsMViI/AAAAAAAABeY/LoEjWlL62P03JHAR8ubcm8XlBe0ct3MNwCLcB/s1600/jared%2Bcody%2Btexas%2BDL.jpg" 
+       
     # Texas sample DL 2
     img_path = "https://static1.squarespace.com/static/50f9bacee4b0c2d1fa3d2c8d/t/56ac1e1fe32140027603a1e7/1454120484869/"
     #CAlifornia examples

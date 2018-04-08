@@ -48,7 +48,7 @@ def DL_OCR_VISION(path):
     
     ret_text = ''
     #if response.error==:
-    print('Texts:', texts)
+    #print('Texts:', texts)
     for text in texts:
         ret_text += text.description
         #print(text , type(text))
@@ -86,7 +86,7 @@ DL OBject structure
 
 def parse_DL(full_text):
     
-    #print('full text - ', full_text)
+    print('full text - ', full_text)
    
     if full_text.count('Texas') or full_text.count('TX') > 0 : state = 'TX'
         
@@ -191,19 +191,19 @@ def parse_DL(full_text):
    
       
     #### GET DOB and EXPIRY DATE
-    
+    dtformat = True
     DATES = re.findall('(\\d{1,2}/\\d{1,2}/\\d{4})', full_str) #date separator by slashes
     if len(DATES) == 0: 
         dtformat = False
         DATES = re.findall('(\d{1,2}-\d{1,2}-\d{4})', full_str) # date separator as -
         if len(DATES) == 0: raise Exception('dates not found on drivers license')
     
+	#remove duplicates from the dates. there are duplicates because full_text for some reason contain two copies
     imp_DATES = []
-    
     for t_date in DATES:
         if t_date not in imp_DATES:
             imp_DATES.append(t_date)
-       
+    
     ###
     ### TO CAPTURE Date of Birth and expiry date of the Driving license, SORT dates in scending order
     ### smallet date would be DOB and farthest date would be expiry date
@@ -235,30 +235,30 @@ def parse_DL(full_text):
 
 # function to build the response for CHATFUEL JSON API 
 
-def build_resp(recallAPI_resp):
+def build_resp(DLOCRAPI_resp):
     
     try:
-        recalls = recallAPI_resp["Results"]  ## Get all results ##
+        DLOCRs = DLOCRAPI_resp["Results"]  ## Get all results ##
               
-        if recallAPI_resp["Count"] > 0:
-            # post a simple text about the number of recalls identified - UNUSED BELOW
-            #resp_txt = resp_txt + "{ \"text\": \"We found total "+ str(recallAPI_resp["Count"]) + " recalls for your vehicle. Please contact your deals or service agent for more details.\"},"
+        if DLOCRAPI_resp["Count"] > 0:
+            # post a simple text about the number of DLOCRs identified - UNUSED BELOW
+            #resp_txt = resp_txt + "{ \"text\": \"We found total "+ str(DLOCRAPI_resp["Count"]) + " DLOCRs for your vehicle. Please contact your deals or service agent for more details.\"},"
             
             
             # initialize gallrey list and dictionary for each gallery item.
             gallery_roll = []
             gallery = dict.fromkeys(['title','image_url', 'suntitle','buttons'])
-            for recall in recalls:
+            for DLOCR in DLOCRs:
                  
                  gallery = {
-                                "title" : str(recall['Component'])[:30], 
-                                "image_url": "https://chryslercapital.files.wordpress.com/2015/09/090115-cc-what-do-i-do-if-my-vehicle-is-recalled-2.jpg?w=80&h=60&ver=3.76.9",
-                                "subtitle": str(recall['Conequence'])[:50],
+                                "title" : str(DLOCR['Component'])[:30], 
+                                "image_url": "https://chryslercapital.files.wordpress.com/2015/09/090115-cc-what-do-i-do-if-my-vehicle-is-DLOCRed-2.jpg?w=80&h=60&ver=3.76.9",
+                                "subtitle": str(DLOCR['Conequence'])[:50],
                                 "buttons":[
                                             {
                                                 "type":"web_url",
-                                                "url" : "https://www.nhtsa.gov/vehicle/"+ recall['ModelYear'] + "/"+ recall['Make'] + "/"+ recall['Model'] , 
-                                                "title":"View Recalls"                                    
+                                                "url" : "https://www.nhtsa.gov/vehicle/"+ DLOCR['ModelYear'] + "/"+ DLOCR['Make'] + "/"+ DLOCR['Model'] , 
+                                                "title":"View DLOCRs"                                    
                                             }
                                         ]
                             }
@@ -269,7 +269,7 @@ def build_resp(recallAPI_resp):
             # build the Full response dictionary        
             resp_dict = {
                         "messages": [
-                                     { "text": "We found total " + str(recallAPI_resp["Count"]) + " recalls for your vehicle. Please contact your dealer or service agent for more details." 
+                                     { "text": "We found total " + str(DLOCRAPI_resp["Count"]) + " DLOCRs for your vehicle. Please contact your dealer or service agent for more details." 
                                      },
                                       
                                                                              
@@ -288,11 +288,11 @@ def build_resp(recallAPI_resp):
                         }
                
         else:
-            #resp_txt = resp_txt + "{ \"text\": \"There are no recalls reported for your vehicle at this point.Please contact your dealer or service agent for any further questions.\"} ] }"
+            #resp_txt = resp_txt + "{ \"text\": \"There are no DLOCRs reported for your vehicle at this point.Please contact your dealer or service agent for any further questions.\"} ] }"
             resp_dict = {
                         "messages": [
                                       {
-                                       "text": "Happy to inform you that, there are no active recalls reported for your vehicle at this time."                                       
+                                       "text": "Happy to inform you that, there are no active DLOCRs reported for your vehicle at this time."                                       
                                       },
                                       { 
                                        "text": "However recommend to check with your dealer or service agent regularly." 
@@ -305,7 +305,7 @@ def build_resp(recallAPI_resp):
         sentry.captureMessage(message=e, level=logging.FATAL)
         resp_dict = {
                      "messages": [
-                       {"text": "An error occured while fetching the recall details for your vehicle - 102."}
+                       {"text": "An error occured while fetching the details for your drivers license - 102."}
                       ]
                 }
     
@@ -349,7 +349,7 @@ def get_DL():
         sentry.captureMessage(message=e, level=logging.FATAL)
         resp = {
                  "messages": [
-                   {"text": "An error occured while fetching the recall details for your vehicle - 102."},
+                   {"text": "An error occurred while fetching the DL image details for your vehicle - 102."},
                   ]
                 }
 
@@ -373,7 +373,7 @@ def get_DL():
         sentry.captureMessage(message=e, level=logging.FATAL) #printing all exceptions to the log
         resp = {
                  "messages": [
-                   {"text": "An error occured while fetching the recall details for your vehicle - 103."},
+                   {"text": "An error occurred while fetching the details for your drivers license - 103."},
                   ]
                 }
     print ("--- Response -->", resp)    
