@@ -42,7 +42,7 @@ def DL_OCR_VISION(path):
     
     image = types.Image(content=content) 
     '''
-    
+	
     response = client.text_detection(image=image)
     texts = response.text_annotations
     
@@ -77,11 +77,9 @@ DL OBject structure
      city: <city>,
      state: <state code>,
      zip: <zip 5 or 5+4>
-     
-     },
+    },
      verified: <False/True> "valid address or not"
 }
-
 '''
 
 def parse_DL(full_text):
@@ -92,7 +90,7 @@ def parse_DL(full_text):
         
     if full_text.count('Florida') > 0 : state='FL'
     
-    if full_text.count('Illinois') > 0 : state = 'IL'
+    if full_text.count('Jes') > 0 and full_text.count('White') : state = 'IL'
            
     if full_text.count('visitPA') > 0 : state='PA'
     
@@ -209,17 +207,18 @@ def parse_DL(full_text):
     ### smallet date would be DOB and farthest date would be expiry date
     ###
     import datetime
+    DLN_valid = True
     if dtformat : 
         imp_DATES = sorted(imp_DATES, key=lambda x: datetime.datetime.strptime(x, '%m/%d/%Y'))
         EXP_datetime = datetime.datetime.strptime(imp_DATES[-1], "%m/%d/%Y")
-        DLN_valid = True if EXP_datetime > datetime.datetime.now() else False ## check if DL is still valid
+        DLN_valid = False if EXP_datetime <= datetime.datetime.now() else True ## check if DL is still valid
     else:
         imp_DATES = sorted(imp_DATES, key=lambda x: datetime.datetime.strptime(x, '%m-%d-%Y'))
         EXP_datetime = datetime.datetime.strptime(imp_DATES[-1], "%m-%d-%Y")
-        DLN_valid = True if EXP_datetime > datetime.datetime.now() else False ## Check if DL is not valid
+        DLN_valid = False if EXP_datetime <= datetime.datetime.now() else True ## Check if DL is not valid
         
-    DOB = imp_DATES[0]
-    EXP = imp_DATES[-1]
+    DOB = imp_DATES[0] ## oldest date will be DOB
+    EXP = imp_DATES[-1] ## Latest date will be Expiry date of DL
     
     ret_obj = { 
              "DLN": DLN,
@@ -235,77 +234,95 @@ def parse_DL(full_text):
 
 # function to build the response for CHATFUEL JSON API 
 
-def build_resp(DLOCRAPI_resp):
+def build_resp(dlobj):
     
     try:
-        DLOCRs = DLOCRAPI_resp["Results"]  ## Get all results ##
-              
-        if DLOCRAPI_resp["Count"] > 0:
-            # post a simple text about the number of DLOCRs identified - UNUSED BELOW
-            #resp_txt = resp_txt + "{ \"text\": \"We found total "+ str(DLOCRAPI_resp["Count"]) + " DLOCRs for your vehicle. Please contact your deals or service agent for more details.\"},"
-            
-            
-            # initialize gallrey list and dictionary for each gallery item.
-            gallery_roll = []
-            gallery = dict.fromkeys(['title','image_url', 'suntitle','buttons'])
-            for DLOCR in DLOCRs:
-                 
-                 gallery = {
-                                "title" : str(DLOCR['Component'])[:30], 
-                                "image_url": "https://chryslercapital.files.wordpress.com/2015/09/090115-cc-what-do-i-do-if-my-vehicle-is-DLOCRed-2.jpg?w=80&h=60&ver=3.76.9",
-                                "subtitle": str(DLOCR['Conequence'])[:50],
-                                "buttons":[
-                                            {
-                                                "type":"web_url",
-                                                "url" : "https://www.nhtsa.gov/vehicle/"+ DLOCR['ModelYear'] + "/"+ DLOCR['Make'] + "/"+ DLOCR['Model'] , 
-                                                "title":"View DLOCRs"                                    
-                                            }
-                                        ]
-                            }
-                    
-                 gallery_roll.append(gallery)
-            # END OF FOR LOOP TO BUILD GALLERY
-            
-            # build the Full response dictionary        
-            resp_dict = {
-                        "messages": [
-                                     { "text": "We found total " + str(DLOCRAPI_resp["Count"]) + " DLOCRs for your vehicle. Please contact your dealer or service agent for more details." 
-                                     },
-                                      
-                                                                             
-                                      { 
-                                          "attachment" : {
-                                          
-                                              "type": "template",
-                                              "payload": {
-                                                          "template_type":"list",
-                                                          "top_element_style": "compact",
-                                                          "elements": gallery_roll
-                                                       }
-                                          }
-                                     }
-                                    ]
-                        }
-               
+        # build the Full response dictionary
+        if dlobj['DL_valid'] :
+            if dlobj['verified']:
+                resp_dict = {
+							"set_attributes": {
+								
+								"validDL":"YES",
+								"validAddress" : "NO"
+							},
+							"messages": [
+											{ 
+											"text": "We have scanned the drivers license you provided. Please confirm the below details" 
+										 },
+										 
+											{ 
+											"text": "DL Number:" + dlobj['DLN']
+										 },
+											{ 
+											"text": "Date of Birth:" + dlobj['DOB']
+										 },											
+											{ 
+											"text": "DL Validity:" + dlobj['EXP']
+										 },											
+											{ 
+											"text": "Address:" + dlobj['address']['add_ln1'] + ',\n' + dlobj['address']['add_ln2']  + ',\n' + dlobj['address']['city']  + ', ' + dlobj['address']['state'] + ' ' + dlobj['address']['zip'] 						
+										 },	
+											{ 
+											"text": "Please confirm the above details",
+											"quick_replies":[
+												{
+												"title": "You got it"
+												},
+												{
+												"title": "Not really",
+												"block_names": "Capture DL Details"
+												}
+																							
+											]	
+										 }											 
+											
+								]
+							}
+            else:
+    				### Address could not be verified...
+    				resp_dict = {
+    							"set_attributes": {
+    								
+    								"validDL":"YES",
+    								"validAddress" : "NO"
+    							},
+    							
+    							"messages": [
+    										  {
+    										   "text": "Thanks for providing the DL image. "                                       
+    										  },
+    										  { 
+    										   "text": "We could not validate the address. I will let our representative contact you within 24 hours, to process your request appropriately." 
+    										  }
+    										]
+    							
+    							}
         else:
-            #resp_txt = resp_txt + "{ \"text\": \"There are no DLOCRs reported for your vehicle at this point.Please contact your dealer or service agent for any further questions.\"} ] }"
-            resp_dict = {
-                        "messages": [
-                                      {
-                                       "text": "Happy to inform you that, there are no active DLOCRs reported for your vehicle at this time."                                       
-                                      },
-                                      { 
-                                       "text": "However recommend to check with your dealer or service agent regularly." 
-                                      }
-                                    ]
-                        }
-
+    			### DL Expired
+    			resp_dict = {
+    						"set_attributes": {
+    							
+    							"validDL":"NO",
+    							"validAddress" : "NO" if not dlobj['verified'] else "YES"
+    						},
+    						
+    						"messages": [
+    									  {
+    									   "text": "Thanks for providing the DL image. "                                       
+    									  },
+    									  { 
+    									   "text": "We observed an issue with the document provided. I will let our representative contact you within 24 hours, to process your request appropriately." 
+    									  }
+    									]
+    						
+    						}
     except Exception as e:
         print(e)
         sentry.captureMessage(message=e, level=logging.FATAL)
         resp_dict = {
                      "messages": [
-                       {"text": "An error occured while fetching the details for your drivers license - 102."}
+                       {"text": "An error occurred while fetching the details for your drivers license - 104."}
                       ]
                 }
     
@@ -355,20 +372,18 @@ def get_DL():
 
     try:
         #img_path = "DL Tests\illinois-DL.jpg"
-       # call google vision API
+        # call google vision API
         DL_Text = DL_OCR_VISION(img_path)
         
         #parse to DL objects
         dlobj = parse_DL(DL_Text)
-        #print ('Parsed Key Info:', json.loads(dlobj))
-        
+        print ('Parsed DL Info:', json.loads(dlobj))
         #build response structure
-        #resp = build_resp(dlobj)
-        resp = dlobj
+        resp = build_resp(dlobj)
+        #resp = dlobj
         #sentry.captureMessage(message='completed processing the DL OCR: {}'.format(dlobj['DLN']), level=logging.INFO)
-    
+ 
     except Exception as e:
-        
         print(e)
         sentry.captureMessage(message=e, level=logging.FATAL) #printing all exceptions to the log
         resp = {

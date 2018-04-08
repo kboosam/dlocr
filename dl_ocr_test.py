@@ -355,9 +355,11 @@ except Exception as e:
             }
 '''   
 try:
-    #img_path = "DL Tests\illinois-DL.jpg"
-    #img_path = r'DL Tests\FL_DL.jpg'
-    img_path = "http://www.northescambia.com/wp-content/uploads/2015/01/driverslicense.jpg" #Florida DL
+    
+	#Illinois example
+    img_path = "http://www.trbimg.com/img-573ba635/turbine/ct-drivers-license-changes-met-20160517" 
+    
+	img_path = "http://www.northescambia.com/wp-content/uploads/2015/01/driverslicense.jpg" #Florida DL
        
     # Texas sample DL 2
     img_path = "https://static1.squarespace.com/static/50f9bacee4b0c2d1fa3d2c8d/t/56ac1e1fe32140027603a1e7/1454120484869/"
@@ -368,6 +370,7 @@ try:
     #alabama example
     img_path = "http://www.usaidshop.com/images/img/ALABAMA.jpg"
     
+	
     # call google vision API
     DL_Text = DL_OCR_VISION(img_path)
     
