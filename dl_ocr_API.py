@@ -99,7 +99,8 @@ DL OBject structure
 def parse_DL(full_text):
     
     print('full text - ', full_text)
-   
+    state = ' ' ## Initialize
+    
     if full_text.count('Texas') or full_text.count('TX') > 0 : state = 'TX'
         
     if full_text.count('Florida') > 0 : state='FL'
@@ -171,7 +172,7 @@ def parse_DL(full_text):
     ## make a continuous string without spaces by concatenating all individual texts from google
     full_str  = ''.join(full_text.split())
     
-    print('Address state is:', state)
+    print('---->Fetching DLN; Address state is:', state)
     
     # get DL number for IL
     if state == 'IL':
@@ -199,7 +200,7 @@ def parse_DL(full_text):
    
     # get DL number for AL
     if state == 'AL':
-        DLN =  re.search('No.\d{7}', full_str).group(0)[3:] # WI DLN is 7 digits
+        DLN =  re.search('NO\.\d{7}', full_str).group(0)[3:] # WI DLN is 7 digits
    
       
     #### GET DOB and EXPIRY DATE
