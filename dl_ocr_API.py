@@ -103,7 +103,7 @@ def parse_DL(full_text):
     
     if full_text.count('Texas') or full_text.count('TX') > 0 : state = 'TX'
         
-    if full_text.count('Florida') > 0 : state='FL'
+    if full_text.count('Sunshine') > 0 and full_text.count('FL') : state='FL'
     
     if full_text.count('Jes') > 0 and full_text.count('White') : state = 'IL'
            
@@ -138,7 +138,7 @@ def parse_DL(full_text):
     
         conn.request("POST", "/?auth-id=eff0b523-c528-0292-6685-6ad2c5a6e92a&auth-token=V7pWleHG8yLUS8CC7NqQ", payload, headers)
         SSresp = conn.getresponse()
-        print('Call to SmartyStreets successful')
+        print('---->Call to SmartyStreets successful: ', SSresp)
     except Exception as e: 
         print('Error occured while calling the SmartyStreets API for address extraction')
         print(e)
