@@ -239,13 +239,13 @@ def build_resp(dlobj):
     
     try:
         # build the Full response dictionary
-        if dlobj['DL_valid'] :
-            if dlobj['verified']:
+        if dlobj['DLN_valid'] :
+            if dlobj['verified']:### build success message, display details and show quick reply buttons
                 resp_dict = {
 							"set_attributes": {
 								
 								"validDL":"YES",
-								"validAddress" : "NO"
+								"validAddress" : "YES"
 							},
 							"messages": [
 											{ 
