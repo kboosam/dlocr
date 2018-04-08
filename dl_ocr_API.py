@@ -19,11 +19,11 @@ from raven.contrib.flask import Sentry ## Sentry logging
 #import requests
 import json
 import http.client
-
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
-import io, re
+#import io
+import re
 
 ##
 ## FUNCTION TO CALL GGOGLE VISION API WITH THE DL IMAGE 
@@ -281,26 +281,26 @@ def build_resp(dlobj):
 							}
             else:
     				### Address could not be verified...
-    				resp_dict = {
-    							"set_attributes": {
-    								
-    								"validDL":"YES",
-    								"validAddress" : "NO"
-    							},
-    							
-    							"messages": [
-    										  {
-    										   "text": "Thanks for providing the DL image. "                                       
-    										  },
-    										  { 
-    										   "text": "We could not validate the address. I will let our representative contact you within 24 hours, to process your request appropriately." 
-    										  }
-    										]
-    							
-    							}
+                    resp_dict = {
+							"set_attributes": {
+								
+								"validDL":"YES",
+								"validAddress" : "NO"
+							},
+							
+							"messages": [
+										  {
+										   "text": "Thanks for providing the DL image. "                                       
+										  },
+										  { 
+										   "text": "We could not validate the address. I will let our representative contact you within 24 hours, to process your request appropriately." 
+										  }
+										]
+							
+							}
         else:
     			### DL Expired
-    			resp_dict = {
+                resp_dict = {
     						"set_attributes": {
     							
     							"validDL":"NO",
