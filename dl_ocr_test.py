@@ -22,118 +22,50 @@ import http.client
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
-import io, re
+import io, re, os
+import urllib.request as req
+from random import randint
 
-
-
-# function to build the response from this API with ChatFuel widgets
-
-def build_resp(recallAPI_resp):
-    
-    try:
-        recalls = recallAPI_resp["Results"]  ## Get all results ##
-              
-        if recallAPI_resp["Count"] > 0:
-            # post a simple text about the number of recalls identified - UNUSED BELOW
-            #resp_txt = resp_txt + "{ \"text\": \"We found total "+ str(recallAPI_resp["Count"]) + " recalls for your vehicle. Please contact your deals or service agent for more details.\"},"
-            
-            
-            # initialize gallrey list and dictionary for each gallery item.
-            gallery_roll = []
-            gallery = dict.fromkeys(['title','image_url', 'suntitle','buttons'])
-            for recall in recalls:
-                 
-                 gallery = {
-                                "title" : str(recall['Component'])[:30], 
-                                "image_url": "https://chryslercapital.files.wordpress.com/2015/09/090115-cc-what-do-i-do-if-my-vehicle-is-recalled-2.jpg?w=80&h=60&ver=3.76.9",
-                                "subtitle": str(recall['Conequence'])[:50],
-                                "buttons":[
-                                            {
-                                                "type":"web_url",
-                                                "url" : "https://www.nhtsa.gov/vehicle/"+ recall['ModelYear'] + "/"+ recall['Make'] + "/"+ recall['Model'] , 
-                                                "title":"View Recalls"                                    
-                                            }
-                                        ]
-                            }
-                    
-                 gallery_roll.append(gallery)
-            # END OF FOR LOOP TO BUILD GALLERY
-            
-            # build the Full response dictionary        
-            resp_dict = {
-                        "messages": [
-                                     { "text": "We found total " + str(recallAPI_resp["Count"]) + " recalls for your vehicle. Please contact your dealer or service agent for more details." 
-                                     },
-                                      
-                                                                             
-                                      { 
-                                          "attachment" : {
-                                          
-                                              "type": "template",
-                                              "payload": {
-                                                          "template_type":"list",
-                                                          "top_element_style": "compact",
-                                                          "elements": gallery_roll
-                                                       }
-                                          }
-                                     }
-                                    ]
-                        }
-               
-        else:
-            #resp_txt = resp_txt + "{ \"text\": \"There are no recalls reported for your vehicle at this point.Please contact your dealer or service agent for any further questions.\"} ] }"
-            resp_dict = {
-                        "messages": [
-                                      {
-                                       "text": "Happy to inform you that, there are no active recalls reported for your vehicle at this time."                                       
-                                      },
-                                      { 
-                                       "text": "However recommend to check with your dealer or service agent regularly." 
-                                      }
-                                    ]
-                        }
-
-    except Exception as e:
-        print(e)
-        sentry.captureMessage(message=e, level=logging.FATAL)
-        resp_dict = {
-                     "messages": [
-                       {"text": "An error occured while fetching the recall details for your vehicle - 102."}
-                      ]
-                }
-    
-    return resp_dict;
 ##
 ## FUNCTION TO CALL GGOGLE VISION API WITH THE DL IMAGE 
 ##
 def DL_OCR_VISION(path):
   
     """Detects text in the file."""
-    client = vision.ImageAnnotatorClient()
-    image = types.Image()
-    image.source.image_uri = path
-    
-    '''
-    # THIS IS FOR LOCAL FILE    
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-    
-    image = types.Image(content=content) 
-    '''
-    
-    response = client.text_detection(image=image)
-    texts = response.text_annotations
-    
-    ret_text = ''
-    #if response.error==:
-    print('Texts:', texts)
-    for text in texts:
-        ret_text += text.description
-        #print(text , type(text))
+    try:
+        ## First download the file for Google Vision API call
+        img_loc = "DL_tmp_"+str(randint(100001, 199999))+".jpg"
+        req.urlretrieve(path, img_loc)
+        print('---> Image file downloaded at:', img_loc)
         
-    #ret_text.replace('\n',' ')  # replace new line charachters
-    ret_text = ' '.join(ret_text.split())
-    
+        client = vision.ImageAnnotatorClient()
+        ''' for remote image - it didn't work as google rejected accessing FB images
+        image = types.Image()
+        image.source.image_uri = path
+        '''
+        # THIS IS FOR LOCAL FILE    
+        with io.open(img_loc, 'rb') as image_file:
+            content = image_file.read()
+        
+        image = types.Image(content=content) 
+      
+        response = client.text_detection(image=image)
+        texts = response.text_annotations
+        print('-------> Calling google vision API conplete')
+        
+        ## Delete the downloaded image file
+        os.remove(img_loc)
+        
+        ret_text = ''
+        for text in texts:
+            ret_text += text.description
+            #print(text , type(text))
+            
+        #ret_text.replace('\n',' ')  # replace new line charachters
+        ret_text = ' '.join(ret_text.split())
+    except Exception as e:
+        print(e)
+        print('Error occured while calling the google vision API - 105')
     
     return ret_text  ## retunrs a string of all text from the driving license
 
@@ -155,26 +87,25 @@ DL OBject structure
      city: <city>,
      state: <state code>,
      zip: <zip 5 or 5+4>
-     
-     },
+    },
      verified: <False/True> "valid address or not"
 }
-
 '''
 
 def parse_DL(full_text):
     
-    #print('full text - ', full_text)
-   
+    print('full text - ', full_text)
+    state = ' ' ## Initialize
+    
     if full_text.count('Texas') or full_text.count('TX') > 0 : state = 'TX'
         
     if full_text.count('Florida') > 0 : state='FL'
     
-    if full_text.count('Illinois') > 0 : state = 'IL'
+    if full_text.count('Jes') > 0 and full_text.count('White') : state = 'IL'
            
     if full_text.count('visitPA') > 0 : state='PA'
     
-    if full_text.count('WISCONSIN') > 0 : state='WI'
+    if full_text.count('WISCON') > 0 : state='WI'
     
     if full_text.count('CALIF') > 0 : state='CA'
     
@@ -265,39 +196,40 @@ def parse_DL(full_text):
    
     # get DL number for AL
     if state == 'AL':
-        DLN =  re.search('No.\d{7}', full_str).group(0)[3:] # WI DLN is 7 digits
+        DLN =  re.search('NO\.\d{7}', full_str).group(0)[3:] # WI DLN is 7 digits
    
       
     #### GET DOB and EXPIRY DATE
-    
+    dtformat = True
     DATES = re.findall('(\\d{1,2}/\\d{1,2}/\\d{4})', full_str) #date separator by slashes
     if len(DATES) == 0: 
         dtformat = False
         DATES = re.findall('(\d{1,2}-\d{1,2}-\d{4})', full_str) # date separator as -
         if len(DATES) == 0: raise Exception('dates not found on drivers license')
     
+	#remove duplicates from the dates. there are duplicates because full_text for some reason contain two copies
     imp_DATES = []
-    
     for t_date in DATES:
         if t_date not in imp_DATES:
             imp_DATES.append(t_date)
-       
+    
     ###
     ### TO CAPTURE Date of Birth and expiry date of the Driving license, SORT dates in scending order
     ### smallet date would be DOB and farthest date would be expiry date
     ###
     import datetime
+    DLN_valid = True
     if dtformat : 
         imp_DATES = sorted(imp_DATES, key=lambda x: datetime.datetime.strptime(x, '%m/%d/%Y'))
         EXP_datetime = datetime.datetime.strptime(imp_DATES[-1], "%m/%d/%Y")
-        DLN_valid = True if EXP_datetime > datetime.datetime.now() else False ## check if DL is still valid
+        DLN_valid = False if EXP_datetime <= datetime.datetime.now() else True ## check if DL is still valid
     else:
         imp_DATES = sorted(imp_DATES, key=lambda x: datetime.datetime.strptime(x, '%m-%d-%Y'))
         EXP_datetime = datetime.datetime.strptime(imp_DATES[-1], "%m-%d-%Y")
-        DLN_valid = True if EXP_datetime > datetime.datetime.now() else False ## Check if DL is not valid
+        DLN_valid = False if EXP_datetime <= datetime.datetime.now() else True ## Check if DL is not valid
         
-    DOB = imp_DATES[0]
-    EXP = imp_DATES[-1]
+    DOB = imp_DATES[0] ## oldest date will be DOB
+    EXP = imp_DATES[-1] ## Latest date will be Expiry date of DL
     
     ret_obj = { 
              "DLN": DLN,
@@ -310,6 +242,106 @@ def parse_DL(full_text):
             }
         # end of else - Verified address
     return ret_obj
+
+###
+#### function to build the response for CHATFUEL JSON API 
+###
+def build_resp(dlobj):
+    
+    try:
+        # build the Full response dictionary
+        if dlobj['DLN_valid'] :
+            if dlobj['verified']:### build success message, display details and show quick reply buttons
+                print("Good driving license \n")
+                resp_dict = {
+							"set_attributes": {
+								
+								"validDL":"YES",
+								"validAddress" : "YES"
+							},
+							"messages": [
+											{ 
+											"text": "We have scanned the drivers license you provided. Please confirm the below details" 
+										 },
+										 
+											{ 
+											"text": "DL Number:" + dlobj['DLN']
+										 },
+											{ 
+											"text": "Date of Birth:" + dlobj['DOB']
+										 },											
+											{ 
+											"text": "DL Validity:" + dlobj['EXP_DT']
+										 },											
+											{ 
+											"text": "Address:" + dlobj['address']['add_ln1'] + ',\n' + dlobj['address']['add_ln2']  + ',\n' + dlobj['address']['city']  + ', ' + dlobj['address']['state'] + ' ' + dlobj['address']['zip'] 						
+										 },	
+											{ 
+											"text": "Please confirm the above details",
+											"quick_replies":[
+												{
+												"title": "You got it"
+												},
+												{
+												"title": "Not really",
+												"block_names": "Capture DL Details"
+												}
+																							
+											]	
+										 }											 
+											
+								]
+							}
+            else:
+    				### Address could not be verified...
+                    print("DL Address is not confirmed as valid \n")
+                    resp_dict = {
+							"set_attributes": {
+								
+								"validDL":"YES",
+								"validAddress" : "NO"
+							},
+							
+							"messages": [
+										  {
+										   "text": "Thanks for providing the DL image. "                                       
+										  },
+										  { 
+										   "text": "We could not validate the address. I will let our representative contact you within 24 hours, to process your request appropriately." 
+										  }
+										]
+							
+							}
+        else:
+    			### DL Expired
+                print("Driving license has expired!!! \n")
+                resp_dict = {
+    						"set_attributes": {
+    							
+    							"validDL":"NO",
+    							"validAddress" : "NO" if not dlobj['verified'] else "YES"
+    						},
+    						
+    						"messages": [
+    									  {
+    									   "text": "Thanks for providing the DL image. "                                       
+    									  },
+    									  { 
+    									   "text": "We observed an issue with the document provided. I will let our representative contact you within 24 hours, to process your request appropriately." 
+    									  }
+    									]
+    						
+    						}
+    except Exception as e:
+        print(e)
+        sentry.captureMessage(message=e, level=logging.FATAL)
+        resp_dict = {
+                     "messages": [
+                       {"text": "An error occurred while fetching the details for your drivers license - 104."}
+                      ]
+                }
+    
+    return resp_dict;
 
 ##### END OF FUNCTION - build_resp
 ###################################################################

@@ -22,40 +22,54 @@ import http.client
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
-#import io
-import re
+import io
+import re, os
+from random import randint
+import urllib.request as req
 
 ##
 ## FUNCTION TO CALL GGOGLE VISION API WITH THE DL IMAGE 
 ##
 def DL_OCR_VISION(path):
   
-    """Detects text in the file."""
-    client = vision.ImageAnnotatorClient()
-    image = types.Image()
-    image.source.image_uri = path
     
-    '''
-    # THIS IS FOR LOCAL FILE    
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-    
-    image = types.Image(content=content) 
-    '''
-	
-    response = client.text_detection(image=image)
-    texts = response.text_annotations
-    
-    ret_text = ''
-    #if response.error==:
-    #print('Texts:', texts)
-    for text in texts:
-        ret_text += text.description
-        #print(text , type(text))
+    try:
+       ## First download the file for Google Vision API call
+        img_loc = "DL_tmp_"+str(randint(100001, 199999))+".jpg"
+        req.urlretrieve(path, img_loc)
+        print('---> Image file downloaded at:', img_loc)
         
-    #ret_text.replace('\n',' ')  # replace new line charachters
-    ret_text = ' '.join(ret_text.split())
-    
+        client = vision.ImageAnnotatorClient()
+        ''' for remote image - it didn't work as google rejected accessing FB images
+        image = types.Image()
+        image.source.image_uri = path
+        '''
+        # THIS IS FOR LOCAL FILE    
+        with io.open(img_loc, 'rb') as image_file:
+            content = image_file.read()
+        
+        image = types.Image(content=content) 
+      
+        response = client.text_detection(image=image)
+        texts = response.text_annotations
+        print('-------> Calling google vision API conplete')
+        
+        ## Delete the downloaded image file
+        os.remove(img_loc)
+        
+        
+        ret_text = ''
+        #if response.error==:
+        #print('Texts:', texts)
+        for text in texts:
+            ret_text += text.description
+            #print(text , type(text))
+            
+        #ret_text.replace('\n',' ')  # replace new line charachters
+        ret_text = ' '.join(ret_text.split())
+    except Exception as e:
+        print(e)
+        print('Error occured while calling the google vision API - 105')
     
     return ret_text  ## retunrs a string of all text from the driving license
 
@@ -241,6 +255,7 @@ def build_resp(dlobj):
         # build the Full response dictionary
         if dlobj['DLN_valid'] :
             if dlobj['verified']:### build success message, display details and show quick reply buttons
+                print("Good driving license \n")
                 resp_dict = {
 							"set_attributes": {
 								
@@ -282,6 +297,7 @@ def build_resp(dlobj):
 							}
             else:
     				### Address could not be verified...
+                    print("DL Address is not confirmed as valid \n")
                     resp_dict = {
 							"set_attributes": {
 								
@@ -301,6 +317,7 @@ def build_resp(dlobj):
 							}
         else:
     			### DL Expired
+                print("Driving license has expired!!! \n")
                 resp_dict = {
     						"set_attributes": {
     							
@@ -356,8 +373,6 @@ def get_DL():
         img_path = request.args.get('imgurl', type= str)
         
         print("##This is the request:", request.args , '\n\n')        
-            
-        #img_path = "testvin2.jpg" # worked well but inserted a space in the VIN
         
         #print("##This is the request JSON:", str(request.get_json()), '\n\n')
         sentry.captureMessage(message='Started processing request- {}'.format(img_path), level=logging.INFO)
