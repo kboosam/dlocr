@@ -96,9 +96,9 @@ def parse_DL(full_text):
            
     if full_text.count('visitPA') > 0 : state='PA'
     
-    if full_text.count('WISCONSIN') > 0 : state='WI'
+    if full_text.count('WISCON') > 0 : state='WI'
     
-    if full_text.count('CALIFORNIA') > 0 : state='CA'
+    if full_text.count('CALIF') > 0 : state='CA'
     
     if full_text.count('ALABAMA') > 0 : state='AL'
     
