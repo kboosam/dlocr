@@ -259,7 +259,7 @@ def build_resp(dlobj):
 											"text": "Date of Birth:" + dlobj['DOB']
 										 },											
 											{ 
-											"text": "DL Validity:" + dlobj['EXP']
+											"text": "DL Validity:" + dlobj['EXP_DT']
 										 },											
 											{ 
 											"text": "Address:" + dlobj['address']['add_ln1'] + ',\n' + dlobj['address']['add_ln2']  + ',\n' + dlobj['address']['city']  + ', ' + dlobj['address']['state'] + ' ' + dlobj['address']['zip'] 						
