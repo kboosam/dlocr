@@ -232,8 +232,9 @@ def parse_DL(full_text):
         # end of else - Verified address
     return ret_obj
 
-# function to build the response for CHATFUEL JSON API 
-
+###
+#### function to build the response for CHATFUEL JSON API 
+###
 def build_resp(dlobj):
     
     try:
@@ -377,7 +378,7 @@ def get_DL():
         
         #parse to DL objects
         dlobj = parse_DL(DL_Text)
-        print ('Parsed DL Info:', json.loads(dlobj))
+        print ('Parsed DL Info:', dlobj)
         #build response structure
         resp = build_resp(dlobj)
         #resp = dlobj
