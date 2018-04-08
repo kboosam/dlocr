@@ -279,21 +279,9 @@ def build_resp(dlobj):
 										 },											
 											{ 
 											"text": "Address:" + dlobj['address']['add_ln1'] + ',\n' + dlobj['address']['add_ln2']  + ',\n' + dlobj['address']['city']  + ', ' + dlobj['address']['state'] + ' ' + dlobj['address']['zip'] 						
-										 },	
-											{ 
-											"text": "Please confirm the above details",
-											"quick_replies":[
-												{
-												"title": "You got it"
-												},
-												{
-												"title": "Not really",
-												"block_names": "Capture DL Details"
-												}
-																							
-											]	
-										 }											 
-											
+										 } 
+                                            
+                                   										 
 								]
 							}
             else:
