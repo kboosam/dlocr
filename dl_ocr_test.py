@@ -118,6 +118,8 @@ def parse_DL(full_text):
         full_text = full_text.replace(' 1 ',' ')  # replace FIELD LABELS
         full_text = full_text.replace(' 2 ',' ')  # replace FIELD LABELS
         full_text = full_text.replace(' 8 ',' ')  # replace FIELD LABELS
+        if state=='TX' : 
+            full_text = full_text.replace(' 3 ',' ')   # replace FIELD LABELS
         full_text = full_text.replace('\n',' ')
     else:
         full_text = full_text.replace('\n',' ') 
