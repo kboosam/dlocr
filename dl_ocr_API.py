@@ -150,7 +150,7 @@ def parse_DL(full_text):
     
         conn.request("POST", "/?auth-id=eff0b523-c528-0292-6685-6ad2c5a6e92a&auth-token=V7pWleHG8yLUS8CC7NqQ", payload, headers)
         SSresp = conn.getresponse()
-        print('---->Call to SmartyStreets successful: ', SSresp.read())
+        print('---->Call to SmartyStreets successful: ', SSresp)
     except Exception as e: 
         print('###@@@@### Error occured while calling the SmartyStreets API for address extraction')
         print(e)
@@ -159,6 +159,7 @@ def parse_DL(full_text):
     
     try:
         SSresp = json.loads(SSresp.read())
+        print ('\n\n ---> Response from SmartyStreets', SSresp)
         verified = SSresp['addresses'][0]['verified']  # address validity
         if not verified :  ## Checking if the address is valid
             postal_address = {
