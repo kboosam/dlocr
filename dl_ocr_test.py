@@ -143,31 +143,35 @@ def parse_DL(full_text):
         print(e)
         sentry.captureMessage(message=e, level=logging.FATAL) #printing all exceptions to the log
     
+    try:
+        SSresp = json.loads(SSresp.read())
+        verified = SSresp['addresses'][0]['verified']  # address validity
+        if not verified :  ## Checking if the address is valid
+            postal_address = {
+                             "add_ln1":SSresp['addresses'][0]['text']
+                             }
+            # when address is not valid we are just sending the identified address string in the line 1
+            print('Address on DL is invalid:', SSresp['addresses'][0]['text'] )
+        else:
+            #extract the address object
+            address = SSresp['addresses'][0]['api_output'][0]
+            
+            ## fomulate address
+            postal_address = {
+                         "add_ln1": address['delivery_line_1'],
+                         "add_ln2": '',
+                         "city": address['components']['city_name'],
+                         "state": address['components']['state_abbreviation'],
+                         "zip": address['components']['zipcode'] + '-' + address['components']['plus4_code']
+                    }
+            
+            state = address['components']['state_abbreviation']    # get state code for all other work.
+         ### END OF IF ELSE STRUCTURE
+    except Exception as e:
+         print(e)
+         print('###@@@@### Error occured while calling the reading address from SmartyStreets API')
+         sentry.captureMessage(message=e, level=logging.FATAL) #printing all exceptions to the log
     
-    SSresp = json.loads(SSresp.read())
-    verified = SSresp['addresses'][0]['verified']  # address validity
-    if not verified :  ## Checking if the address is valid
-        postal_address = {
-                         "add_ln1":SSresp['addresses'][0]['text']
-                         }
-        # when address is not valid we are just sending the identified address string in the line 1
-        print('Address on DL is invalid:', SSresp['addresses'][0]['text'] )
-    else:
-        #extract the address object
-        address = SSresp['addresses'][0]['api_output'][0]
-        
-        ## fomulate address
-        postal_address = {
-                     "add_ln1": address['delivery_line_1'],
-                     "add_ln2": '',
-                     "city": address['components']['city_name'],
-                     "state": address['components']['state_abbreviation'],
-                     "zip": address['components']['zipcode'] + '-' + address['components']['plus4_code']
-                }
-        
-        state = address['components']['state_abbreviation']    # get state code for all other work.
-     ### END OF IF ELSE STRUCTURE
-        
     ## make a continuous string without spaces by concatenating all individual texts from google
     full_str  = ''.join(full_text.split())
     
@@ -201,7 +205,7 @@ def parse_DL(full_text):
     if state == 'AL':
         DLN =  re.search('NO\.\d{7}', full_str).group(0)[3:] # WI DLN is 7 digits
    
-      
+    print('----> License Number: ', DLN)
     #### GET DOB and EXPIRY DATE
     dtformat = True
     DATES = re.findall('(\\d{1,2}/\\d{1,2}/\\d{4})', full_str) #date separator by slashes
@@ -233,6 +237,8 @@ def parse_DL(full_text):
         
     DOB = imp_DATES[0] ## oldest date will be DOB
     EXP = imp_DATES[-1] ## Latest date will be Expiry date of DL
+    
+    print('----> DOB, EXPIRY: ', DOB, EXP)
     
     ret_obj = { 
              "DLN": DLN,
