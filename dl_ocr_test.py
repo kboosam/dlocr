@@ -95,6 +95,9 @@ DL OBject structure
 def parse_DL(full_text):
     
     print('full text - ', full_text)
+    
+    all_ascii = ''.join(char for char in full_text if ord(char) < 128)
+
     state = ' ' ## Initialize
     
     if full_text.count('Texas') or full_text.count('TX') > 0 : state = 'TX'

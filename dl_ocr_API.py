@@ -27,9 +27,11 @@ import re, os
 from random import randint
 import urllib.request as req
 
+
 ##
 ## FUNCTION TO CALL GGOGLE VISION API WITH THE DL IMAGE 
 ##
+
 def DL_OCR_VISION(path):
   
     
@@ -99,6 +101,13 @@ DL OBject structure
 def parse_DL(full_text):
     
     print('full text - ', full_text)
+    ## Remove non-ascii characters that are inserted by google vision sometimes.
+    all_ascii = ''.join(char for char in full_text if ord(char) < 128)
+    
+    if full_text != all_ascii :
+        print('### ---- ###  Non-ascii charachters removed from text', all_ascii)
+        full_text = all_ascii
+    
     state = ' ' ## Initialize
     
     if full_text.count('Texas') or full_text.count('TX') > 0 : state = 'TX'
@@ -293,7 +302,7 @@ def build_resp(dlobj):
 								
 								"validDL":"YES",
 								"validAddress" : "NO",
-                                "jsonAPIError": "NO"
+                            "jsonAPIError": "NO"
 							},
 							
 							"messages": [
@@ -313,7 +322,8 @@ def build_resp(dlobj):
     						"set_attributes": {
     							
     							"validDL":"NO",
-    							"validAddress" : "NO" if not dlobj['verified'] else "YES"
+    							"validAddress" : "NO" if not dlobj['verified'] else "YES",
+                            "jsonAPIError": "NO"
     						},
     						
     						"messages": [
