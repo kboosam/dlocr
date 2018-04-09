@@ -261,7 +261,8 @@ def build_resp(dlobj):
 							"set_attributes": {
 								
 								"validDL":"YES",
-								"validAddress" : "YES"
+								"validAddress" : "YES",
+                            "jsonAPIError": "NO"
 							},
 							"messages": [
 											{ 
@@ -291,7 +292,8 @@ def build_resp(dlobj):
 							"set_attributes": {
 								
 								"validDL":"YES",
-								"validAddress" : "NO"
+								"validAddress" : "NO",
+                                "jsonAPIError": "NO"
 							},
 							
 							"messages": [
@@ -321,14 +323,17 @@ def build_resp(dlobj):
     									  { 
     									   "text": "We observed an issue with the document provided. I will let our representative contact you within 24 hours, to process your request appropriately." 
     									  }
-    									]
-    						
+    									]   						
     						}
     except Exception as e:
         print(e)
         sentry.captureMessage(message=e, level=logging.FATAL)
         resp_dict = {
-                     "messages": [
+                    "set_attributes": {
+    							
+    							"jsonAPIError": "YES"
+    						},
+                    "messages": [
                        {"text": "An error occurred while fetching the details for your drivers license - 104."}
                       ]
                 }
@@ -370,7 +375,12 @@ def get_DL():
         print(e)
         sentry.captureMessage(message=e, level=logging.FATAL)
         resp = {
-                 "messages": [
+                "set_attributes": {
+    							
+    							"jsonAPIError": "YES"
+    						},
+                        
+                "messages": [
                    {"text": "An error occurred while fetching the DL image details for your vehicle - 102."},
                   ]
                 }
@@ -392,10 +402,15 @@ def get_DL():
         print(e)
         sentry.captureMessage(message=e, level=logging.FATAL) #printing all exceptions to the log
         resp = {
-                 "messages": [
+                 "set_attributes": {
+    							
+    							"jsonAPIError": "YES"
+    						},
+                "messages": [
                    {"text": "An error occurred while fetching the details for your drivers license - 103."},
                   ]
                 }
+    
     print ("--- Response -->", resp)    
     return jsonify(resp)
 #### END OF  function
