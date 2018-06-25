@@ -284,7 +284,15 @@ def build_resp(dlobj):
 								
 								"validDL":"YES",
 								"validAddress" : "YES",
-                            "jsonAPIError": "NO"
+								"jsonAPIError": "NO",
+								"DLN" : dlobj['DLN'],
+								"DL_DOB" : dlobj['DOB'],
+								"DL_EXP":dlobj['EXP_DT'],
+								"DL_add_ln1": dlobj['address']['add_ln1'],
+								"DL_add_ln2": dlobj['address']['add_ln2'],
+								"DL_city": dlobj['address']['city'],
+								"DL_state": dlobj['address']['state'],
+								"DL_zip": dlobj['address']['zip'] 
 							},
 							"messages": [
 											{ 
@@ -292,16 +300,16 @@ def build_resp(dlobj):
 										 },
 										 
 											{ 
-											"text": "DL Number:" + dlobj['DLN']
+											"text": "DL Number:  " + dlobj['DLN']
 										 },
 											{ 
-											"text": "Date of Birth:" + dlobj['DOB']
+											"text": "Date of Birth:  " + dlobj['DOB']
 										 },											
 											{ 
-											"text": "DL Validity:" + dlobj['EXP_DT']
+											"text": "DL Validity:  " + dlobj['EXP_DT']
 										 },											
 											{ 
-											"text": "Address:" + dlobj['address']['add_ln1'] + ',\n' + dlobj['address']['add_ln2']  + ',\n' + dlobj['address']['city']  + ', ' + dlobj['address']['state'] + ' ' + dlobj['address']['zip'] 						
+											"text": "Address:  " + dlobj['address']['add_ln1'] + ',\n' + dlobj['address']['add_ln2']  + ',\n' + dlobj['address']['city']  + ', ' + dlobj['address']['state'] + ' ' + dlobj['address']['zip'] 						
 										 } 
                                             
                                    										 
