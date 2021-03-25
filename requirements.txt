@@ -50,7 +50,7 @@ numpy==1.14.0
 pandas==0.22.0
 python-dateutil==2.6.1
 pytz==2017.3
-PyYAML==3.12
+PyYAML==5.4
 raven==6.4.0
 regex==2018.2.21
 requests==2.18.4
